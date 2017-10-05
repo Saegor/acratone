@@ -6,76 +6,90 @@
 
 #define GETCH_TIMEOUT 80
 
+// SET COLOR
 void setColor( int pair, int bold ) {
  attrset( COLOR_PAIR( pair ) | bold * A_BOLD );
 }
 
-// PICK A NOTE
+// PLAY A SHORT NOTE
 void pick( int st ) {
+ // TRY TO CREATE A NOTE
  int id = newNote( semitoneToFreq( st ) );
+ // IF NOTE ALLOCATED
  if ( id != -1 ) {
+  // SET FULL ENERGY
   setEnergy( id, 1.0 );
+  // DROP THE NOTE
   dropNote( id );
  }
 }
 
 // PRINT TITLE
 void printTitle( ) {
+ // PRINT SOME ELEGANT TITLE
  setColor( 5, 1 );
  mvaddstr( 2, 4, "Acratone " );
  setColor( 5, 0 );
  addstr( "(0.17.10)" );
- setColor( 3, 0 );
- mvaddstr( 3, 4, "by " );
- setColor( 3, 1 );
- addstr( "Saegor" );
 }
 
 // PRINT LIST
 void printList( ) {
- float f;
  int st;
  int max = getMaxNotes( );
 
+ // FOR EACH ID
  for ( int id = 0; id < max; id++ ) {
-  f = getFreq( id );
-  if ( f > 0 ) {
+
+  // PRINT ID LIST
+  setColor( 8, 1 );
+  move( LINES / 2 + id - max / 2, 4 );
+  printw( "ID %X:", id );
+
+  // IF NOTE PLAYED
+  if ( !empty_id( id ) ) {
+
+   // SET COLOR FOR PITCH PRINT
    setColor( 2, 0 );
-   if ( getEnergy( id ) > 0.5) setColor( 2, 1 );
+
+   // IF LOUD NOTE, BOLD IT
+   if ( getEnergy( id ) > 0.5 ) setColor( 2, 1 );
+   st = (int) mod12( freqToSemitone( getFreq( id ) ) );
+
+   // MOVE AND PRINT
+   move( LINES / 2 + id - max / 2, 10 );
+   printw( "%X", st );
   }
-  else setColor( 8, 0 );
-  move( LINES/2 + id - max/2, 4 );
-  st = (int) mod12( freqToSemitone( f ) + 0.5 );
-  printw( "#%X: %X", id, st );
  }
 }
 
 // PRINT MATRIX
 void printMatrix( ) {
- int f = 0;
- int st, st2;
 
  // FOR EACH CELL
  for ( int y = LINES/2 - 3; y < LINES/2 + 3; y++ ) {
   for ( int x = COLS/3 - 12; x < COLS/3 + 12; x = x + 2 ) {
 
-   // X = FIFTHS, Y = THIRDS
-   st = (y * 8 + x * 7/2) % 12;
+   // X = FIFTHS AXIS, Y = THIRDS AXIS
+   int st = ( y * 8 + x * 7/2 ) % 12;
 
-   // DEFAULT GRID
+   // SET COLOR FOR DEFAULT GRID
    setColor( 8, 0 );
+
+   // PIANO LAYOUT
    for ( int i = 0; i < 7; i++ ) {
     if ( ( ( 5 + 7 * i ) % 12 ) == st ) setColor( 8, 1 );
    }
 
-   // COLOR PLAYED NOTES
+   // COLOUR PLAYED NOTES
    for ( int id = 0; id < getMaxNotes( ); id++ ) {
-    f = getFreq( id );
-    if ( f > 0 ) {
-     st2 = mod12( freqToSemitone( f ) + 0.5 );
-     if ( st == st2 ) {
-      setColor( 7, 0 );
-      if ( getEnergy( id ) > 0.5) setColor( 7, 1 );
+    if ( !empty_id( id ) ) {
+     // IF THE CELL NOTE IS THE PLAYED NOTE
+     if ( st == mod12( freqToSemitone( getFreq( id ) ) ) ) {
+      // COLOUR PLAYED NOTE
+      setColor( 3, 0 );
+      // IF LOUD NOTE, BOLD IT
+      if ( getEnergy( id ) > 0.5) setColor( 3, 1 );
      }
     }
    }
@@ -87,24 +101,21 @@ void printMatrix( ) {
  }
 }
 
-// STORE CIRCLE COORDS
+// CIRCLE PERIMETER COORDS: circ[y=0 x=1][semitone]
 int circ[ 2 ][ 12 ] = {
 { -2, -2, -1,  0,  1,  2,  2,  2,  1,  0, -1, -2 },
 {  0,  2,  3,  4,  3,  2,  0, -2, -3, -4, -3, -2 } };
 
 // PRINT CIRCLE
 void printCircle( ) {
- float f;
- int st;
  for ( int i = 0; i < 12; i++ ) {
-  move( LINES / 2 + circ[0][i], 2 * COLS / 3 + circ[1][i] );
+  move( LINES / 2 + circ[ 0 ][ i ], 2 * COLS / 3 + circ[ 1 ][ i ] );
   setColor( 8, 1 );
   printw( "%X", i );
  }
  for ( int id = 0; id < getMaxNotes( ); id++ ) {
-  f = getFreq( id );
-  if ( f > 0 ) {
-   st = mod12( freqToSemitone( f ) + 0.5 );
+  if ( !empty_id( id ) ) {
+   int st = mod12( freqToSemitone( getFreq( id ) ) );
    setColor( 6, 0 );
    if ( getEnergy( id ) > 0.5 ) setColor( 6, 1 );
    move( LINES / 2 + circ[ 0 ][ st ], 2 * COLS / 3 + circ[ 1 ][ st ] );
@@ -123,9 +134,7 @@ int screenServer( ) {
  curs_set( 0 );
  keypad( stdscr, TRUE );
  start_color( );
- for ( short i = 0; i < 8; i++ ) {
-  init_pair( (i ? i : 8), i, 0 );
- }
+ for ( short i = 0; i < 8; i++ ) init_pair( ( i ? i : 8 ), i, 0 );
  timeout( GETCH_TIMEOUT );
 
  // LOOP

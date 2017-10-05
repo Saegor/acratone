@@ -8,6 +8,10 @@
 
 int midiServer( )
 {
+ // DEVICE TEST
+ int f_err = access( MIDI_IN, F_OK );
+ if ( f_err ) return EXIT_FAILURE;
+
  // MIDI INIT
  snd_rawmidi_t *handle_in = 0;
  int err = snd_rawmidi_open( &handle_in, NULL,

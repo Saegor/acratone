@@ -13,8 +13,7 @@ typedef struct {
  float sample[ BUFFER ];
  float freq;
  float energy;
- int key;
- int hold:1;
+ int hold :1;
 } note_t;
 
 // THE BOOK OF NOTES
@@ -34,8 +33,9 @@ float phaseToSin( float p ) { return sinf( 2 * M_PI * p ); }
 
 // FREE NOTE
 void freeNote( int id ) {
+  // THROW ERROR IF NO ADRESS
   assert( tab[ id ] != NULL );
-  // FREE MEMORY
+  // UNALLOCATE MEMORY
   free( tab[ id ] );
   // CLEAN THE BOOK
   tab[ id ] = NULL;
@@ -58,7 +58,7 @@ int soundServer( ) {
   pthread_mutex_lock ( &mutex );
 
   // CLEAN MAIN BUFFER
-  for ( int bf = 0; bf < BUFFER; bf++ ) bufferOut[ bf ] = 0;
+  for ( int bf = 0; bf < BUFFER; bf++ ) bufferOut[ bf ] = 0.0;
 
   // FOR EACH NOTE
   for ( int id = 0; id < VOICES; id++ ) {
@@ -83,11 +83,11 @@ int soundServer( ) {
      // WAVE GENERATION
      n->sample[ bf ] = n->energy * phaseToSin( n->phase );
 
-     // MIX + WRITE TO MAIN BUFFER
+     // MIX AND STORE INTO MAIN BUFFER
      bufferOut[ bf ] += n->sample[ bf ] / (float) VOICES;
     }
 
-    // NO LIFE WITHOUT ENERGY
+    // UNALLOCATE NOTES WITHOUT ENERGY
     if ( n->energy <= 0.05 && n->hold == 0 ) freeNote( id );
    }
   }
@@ -98,7 +98,7 @@ int soundServer( ) {
   // WRITE !
   snd_pcm_writei( handle, bufferOut, BUFFER );
  }
- // FREE LAST NOTES
+ // UNALLOCATE MEMORY OF LAST NOTES
  for ( int id = 0; id < VOICES; id++ ) {
   if ( tab[ id ] != NULL ) freeNote( id );
  }
@@ -113,6 +113,7 @@ int soundServer( ) {
 // NEW NOTE
 int newNote( float freq )
 {
+ // SEARCH FOR EMPTY SPACE
  for ( int id = 0; id < VOICES; id++ ) {
   if ( tab[ id ] == NULL ) {
 
@@ -149,7 +150,7 @@ float freqToSemitone( float f ) {
  return 12 * log2( f / 440.0 ) + 69;
 }
 
-// MODULO 12 (FLOAT)
+// MODULO 12 (FOR FLOAT)
 float mod12( float s ) {
  while( s >= 12 ) s -= 12;
  while( s < 0 ) s += 12;
@@ -176,4 +177,9 @@ float getEnergy( int id ) {
 // GET MAX NOTES
 int getMaxNotes( ) {
  return VOICES;
+}
+
+// CHECK IF ID IS AVAILABLE FOR NEW NOTE
+int empty_id( int id ) {
+ return tab[ id ] == NULL;
 }

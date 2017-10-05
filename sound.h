@@ -4,6 +4,7 @@
 int newNote( float freq );
 void dropNote( int id );
 
+int empty_id( int id );
 void setEnergy( int id, float energy );
 float getFreq( int id );
 float getEnergy( int id );
