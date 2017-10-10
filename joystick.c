@@ -5,7 +5,7 @@
 #include "sound.h"
 
 #define JOY_DEV "/dev/input/js0"
-#define BUTTONS 4
+#define BUTTONS 6
 
 int joystickServer( )
 {
@@ -17,9 +17,15 @@ int joystickServer( )
  ioctl( joy_fd, JSIOCGBUTTONS, &num_of_buttons );
  int * axis = ( int * ) calloc( num_of_axis, sizeof( int ) );
  char * button = ( char * ) calloc( num_of_buttons, sizeof( char ) );
- char * edge = ( char * ) calloc( num_of_buttons, sizeof( char ) );
+ char * b_edge = ( char * ) calloc( num_of_buttons, sizeof( char ) );
  struct js_event js;
- int note[ BUTTONS ] = { 36, 40, 41, 43 };
+ int note[ BUTTONS ] = {
+	48 + 4, 	// A
+	48 + 3, 	// B
+	48 + 9, 	// X
+	48 + 2, 	// Y
+	48 + 8, 	// L1
+	48 + 5 };	// R1
 
  // STORE NOTES PLAYED
  int joyTab[ 16 ];
@@ -60,21 +66,21 @@ int joystickServer( )
   for ( int i = 0; i < BUTTONS; i++ ) {
 
    // NOTE ON
-   if( button[ i ] & ~edge[ i ] ) {
+   if( button[ i ] & ~b_edge[ i ] ) {
     int id = newNote( semitoneToFreq( note[ i ] ) );
     if ( id != -1 ) {
      joyTab[ i ] = id;
      setEnergy( id, 1.0 );
-     edge[ i ] = 1;
+     b_edge[ i ] = 1;
     }
    }
 
    // NOTE OFF
-   else if( ~button[ i ] & edge[ i ] ) {
+   else if( ~button[ i ] & b_edge[ i ] ) {
     if ( joyTab[ i ] != -1 ) {
      dropNote( joyTab[ i ] );
      joyTab[ i ] = -1;
-     edge[ i ] = 0;
+     b_edge[ i ] = 0;
     }
    }
   }
@@ -86,7 +92,7 @@ int joystickServer( )
  // FREE ARRAYS
  free( button );
  free( axis );
- free( edge );
+ free( b_edge );
 
  // JOYSTICK EXIT
  close( joy_fd );

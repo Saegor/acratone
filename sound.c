@@ -88,7 +88,7 @@ int soundServer( ) {
     }
 
     // UNALLOCATE NOTES WITHOUT ENERGY
-    if ( n->energy <= 0.05 && n->hold == 0 ) freeNote( id );
+    if ( n->energy <= 0.1 && n->hold == 0 ) freeNote( id );
    }
   }
 

@@ -15,7 +15,7 @@ void setColor( int pair, int bold ) {
 void pick( int st ) {
  // TRY TO CREATE A NOTE
  int id = newNote( semitoneToFreq( st ) );
- // IF NOTE ALLOCATED
+ // IF NOTE CREATED
  if ( id != -1 ) {
   // SET FULL ENERGY
   setEnergy( id, 1.0 );
@@ -170,7 +170,7 @@ int screenServer( ) {
    case 'q': params.exit = TRUE; break;
    case '&': params.debug ^= 1; break;
 
-   // TRY A NOTE
+   // PIANO-LIKE LAYOUT
    case 'w': pick( 60 ); break;
    case 's': pick( 61 ); break;
    case 'x': pick( 62 ); break;
@@ -191,6 +191,7 @@ int screenServer( ) {
 
    case 'a': pick( 72 ); break;
    case 'z': pick( 74 ); break;
+   case '"': pick( 75 ); break;
    case 'e': pick( 76 ); break;
    case 'r': pick( 77 ); break;
    case 't': pick( 79 ); break;
@@ -201,7 +202,6 @@ int screenServer( ) {
    case 'o': pick( 86 ); break;
    case 'p': pick( 88 ); break;
   }
-
   // MUTEX UNLOCK
   pthread_mutex_unlock( &mutex );
 

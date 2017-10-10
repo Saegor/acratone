@@ -4,24 +4,25 @@
 #include "midi.h"
 #include "sound.h"
 
-#define MIDI_IN "hw:1,0,0"
+#define CARD 1
+#define DEVICE 0
+#define SUBDEVICE 0
 
 int midiServer( )
 {
- // DEVICE TEST
- int f_err = access( MIDI_IN, F_OK );
- if ( f_err ) return EXIT_FAILURE;
 
- // MIDI INIT
- snd_rawmidi_t *handle_in = 0;
+ // OPEN MIDI INPUT
+ char name[ 16 ];
+ sprintf( name, "hw:%d,%d,%d", CARD, DEVICE, SUBDEVICE );
+ snd_rawmidi_t * handle_in = NULL;
  int err = snd_rawmidi_open( &handle_in, NULL,
-	MIDI_IN, SND_RAWMIDI_NONBLOCK );
+	name, SND_RAWMIDI_NONBLOCK );
  if ( err ) return EXIT_FAILURE;
 
- // STORE MESSAGE
+ // STORE MIDI INPUT MESSAGE
  unsigned char byte = 0;
 
- // STORE NOTES PLAYED
+ // STORE ID OF PLAYED NOTES
  int midiTab[ 128 ];
  for ( int i = 0; i < 128; i++ ) {
   midiTab[ i ] = -1;
